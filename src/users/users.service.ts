@@ -10,17 +10,24 @@ import { Roles } from 'src/constants/Roles';
 @Injectable()
 export class UsersService {
   async create(createUserDto: CreateUserDto) {
+    const user_data = { ...createUserDto };
+
+    if (!createUserDto.commision) {
+      delete user_data.commision;
+    }
+    const user = User.create(user_data);
+    const count = (await User.find({ role: createUserDto.role })).length;
+    user.username =
+      createUserDto.role === Roles.USER ? 'AGT-' + count : 'SUP-' + count;
+
+    await user.save();
+
     const profile = new UserProfile();
     profile.city = createUserDto.city;
     profile.state = createUserDto.state;
     profile.pan = createUserDto.pan;
     profile.company = createUserDto.company;
     await profile.save();
-
-    const user = User.create(createUserDto);
-    const count = (await User.find({ role: createUserDto.role })).length;
-    user.username =
-      createUserDto.role === Roles.USER ? 'AGT-' + count : 'SUP-' + count;
     user.profile = profile;
     await user.save();
 

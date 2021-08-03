@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsPhoneNumber, Min, Max } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsPhoneNumber } from 'class-validator';
 import { UniqueOnDatabase } from 'src/commons/UniqueValidation';
 import { UserProfile } from '../entities/profile.entity';
 import { User } from '../entities/user.entity';
@@ -29,4 +29,6 @@ export class CreateUserDto {
   @IsNotEmpty()
   @UniqueOnDatabase(UserProfile)
   readonly company: string;
+
+  readonly commision: number;
 }
