@@ -58,6 +58,7 @@ export class UsersService {
           'profile',
           'role',
           'username',
+          'isActive',
           'creationDate',
         ],
         where: {
