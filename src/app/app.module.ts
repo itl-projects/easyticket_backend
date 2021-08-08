@@ -1,12 +1,19 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersModule } from '../users/users.module';
-import { AuthModule } from '../auth/auth.module';
+
+// entities
 import { User } from '../users/entities/user.entity';
 import { UserProfile } from '../users/entities/profile.entity';
+import { Ticket } from 'src/tickets/entities/ticket.entity';
 
-const entities = [User, UserProfile];
+// mobules
+import { AuthModule } from '../auth/auth.module';
+import { UsersModule } from '../users/users.module';
+import { TicketsModule } from 'src/tickets/tickets.module';
+import { FlightsModule } from 'src/flights/flights.module';
+
+const entities = [User, UserProfile, Ticket];
 
 @Module({
   imports: [
@@ -23,10 +30,15 @@ const entities = [User, UserProfile];
         database: process.env.DB_NAME,
         entities: entities,
         synchronize: false,
+        autoLoadEntities: true,
+        timezone: '+05:30',
+        dateStrings: true,
       }),
     }),
-    UsersModule,
     AuthModule,
+    UsersModule,
+    TicketsModule,
+    FlightsModule,
   ],
   controllers: [],
   providers: [],

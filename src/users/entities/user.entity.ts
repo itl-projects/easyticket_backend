@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { BeforeInsert, Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+} from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { Roles } from '../../constants/Roles';
 import { PreEntity } from '../../core/base.entity';
@@ -36,9 +43,9 @@ export class User extends PreEntity {
   @Column()
   password: string;
 
-  @ApiProperty({ required: false, default: false })
+  @ApiProperty()
   @Column({ default: true })
-  isActive?: boolean = true;
+  isActive: boolean;
 
   @Column({ default: 0 })
   commision: number;
@@ -52,9 +59,9 @@ export class User extends PreEntity {
   profile: UserProfile;
 
   @BeforeInsert()
+  @BeforeUpdate()
   async hashPassword() {
-    if (this.password) this.password = await bcrypt.hash(this.password, 8);
-    else this.password = await bcrypt.hash(this.username, 8);
+    this.password = await bcrypt.hash(this.username, 8);
   }
 
   async validatePassword(password: string): Promise<boolean> {

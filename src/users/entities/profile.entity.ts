@@ -13,6 +13,6 @@ export class UserProfile extends PreEntity {
   @Column({ unique: true })
   company: string;
 
-  @Column()
+  @Column({ nullable: true })
   pan: string;
 }

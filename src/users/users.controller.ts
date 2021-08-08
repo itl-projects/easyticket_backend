@@ -19,7 +19,6 @@ import { Roles } from 'src/constants/Roles';
 import { RolesAllowed } from 'src/auth/decorators/roles.decorator';
 
 @ApiTags('Users')
-@Controller('/users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @RolesAllowed(Roles.ADMIN)
 @Controller('users')
@@ -33,7 +32,20 @@ export class UsersController {
 
   @Get(':id')
   show(@Param('id') id: string) {
-    return this.usersService.showById(id);
+    const user = this.usersService.showById(id);
+    if (user) {
+      return {
+        status: true,
+        message: 'User found',
+        data: user,
+      };
+    }
+
+    return {
+      status: false,
+      message: 'Invalid ID',
+      data: null,
+    };
   }
 
   @UseGuards(JwtAuthGuard)

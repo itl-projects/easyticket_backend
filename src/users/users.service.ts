@@ -25,7 +25,7 @@ export class UsersService {
     const profile = new UserProfile();
     profile.city = createUserDto.city;
     profile.state = createUserDto.state;
-    profile.pan = createUserDto.pan;
+    profile.pan = createUserDto.pan || '';
     profile.company = createUserDto.company;
     await profile.save();
     user.profile = profile;
@@ -42,24 +42,36 @@ export class UsersService {
 
   async findAll(page: string, limit: string, keyword: string) {
     const _keyword = keyword || '';
+    const _page = page ? parseInt(page) : 1;
+    const _limit = limit ? parseInt(limit) : 10;
     return paginate(
       User.getRepository(),
-      { page, limit },
+      { page: _page, limit: _limit },
       {
+        select: [
+          'email',
+          'phone',
+          'commision',
+          'firstName',
+          'lastName',
+          'id',
+          'profile',
+          'role',
+          'username',
+          'creationDate',
+        ],
         where: {
           firstName: Like('%' + _keyword + '%'),
           role: Not(Roles.ADMIN),
         },
-
         relations: ['profile'],
       },
     );
   }
 
-  async showById(id: string): Promise<User> {
+  async showById(id: string): Promise<User | null> {
     const user = await User.findOne(id, { relations: ['profile'] });
-
-    delete user.password;
+    if (user) delete user.password;
     return user;
   }
 

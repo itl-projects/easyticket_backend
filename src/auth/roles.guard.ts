@@ -38,7 +38,7 @@ export class RolesGuard implements CanActivate {
     });
 
     roles.forEach((role) => {
-      if ((requestUser.role && role) === role) {
+      if (requestUser.role === role) {
         isAllowed = true;
       }
     });
