@@ -12,8 +12,11 @@ import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
 import { TicketsModule } from 'src/tickets/tickets.module';
 import { FlightsModule } from 'src/flights/flights.module';
+import { BookingsModule } from 'src/bookings/bookings.module';
+import { Booking } from 'src/bookings/entities/booking.entity';
+import { Passenger } from 'src/bookings/entities/passenger.entity';
 
-const entities = [User, UserProfile, Ticket];
+const entities = [User, UserProfile, Ticket, Booking, Passenger];
 
 @Module({
   imports: [
@@ -39,6 +42,7 @@ const entities = [User, UserProfile, Ticket];
     UsersModule,
     TicketsModule,
     FlightsModule,
+    BookingsModule,
   ],
   controllers: [],
   providers: [],

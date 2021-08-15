@@ -6,7 +6,6 @@ import { SearchFlights } from './dto/search-flights.dto';
 export class FlightsService {
   async findAll(searchFlights: SearchFlights) {
     const data = await Ticket.createQueryBuilder()
-
       .where('source = :source', { source: searchFlights.source })
       .andWhere('destination = :destination', {
         destination: searchFlights.destination,

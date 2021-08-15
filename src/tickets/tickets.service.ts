@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { User } from 'src/users/entities/user.entity';
+import { Equal } from 'typeorm';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket } from './entities/ticket.entity';
@@ -52,7 +53,7 @@ export class TicketsService {
     }
   }
 
-  async findAll(page: string, limit: string, keyword: string) {
+  async findAll(userId: string, page: string, limit: string, keyword: string) {
     const _keyword = keyword || '';
     const _page = page ? parseInt(page) : 1;
     const _limit = limit ? parseInt(limit) : 10;
@@ -75,6 +76,9 @@ export class TicketsService {
           'user',
           'creationDate',
         ],
+        where: {
+          user: Equal(userId),
+        },
         relations: ['user'],
       },
     );

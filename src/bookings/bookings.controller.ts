@@ -6,29 +6,29 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
   UseGuards,
   Query,
-  Req,
 } from '@nestjs/common';
-import { TicketsService } from './tickets.service';
-import { CreateTicketDto } from './dto/create-ticket.dto';
-import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { RolesAllowed } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/constants/Roles';
+import { BookingsService } from './bookings.service';
+import { CreateBookingDto } from './dto/create-booking.dto';
+import { UpdateBookingDto } from './dto/update-booking.dto';
 
 @ApiTags('Tickets')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RolesAllowed(Roles.ADMIN, Roles.SUPPLIER)
-@Controller('tickets')
-export class TicketsController {
-  constructor(private readonly ticketsService: TicketsService) {}
+@RolesAllowed(Roles.USER)
+@Controller('bookings')
+export class BookingsController {
+  constructor(private readonly bookingsService: BookingsService) {}
 
-  @Post()
-  create(@Req() request, @Body() createTicketDto: CreateTicketDto) {
-    return this.ticketsService.create(createTicketDto, request.user.userId);
+  @Post('confirm')
+  create(@Req() request, @Body() createBookingDto: CreateBookingDto) {
+    return this.bookingsService.create(createBookingDto, request.user.userId);
   }
 
   @Get()
@@ -38,7 +38,7 @@ export class TicketsController {
     @Query('limit') limit: string,
     @Query('keyword') keyword: string,
   ) {
-    return this.ticketsService.findAll(
+    return this.bookingsService.findAll(
       request.user.userId,
       page,
       limit,
@@ -48,16 +48,16 @@ export class TicketsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.ticketsService.findOne(id);
+    return this.bookingsService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTicketDto: UpdateTicketDto) {
-    return this.ticketsService.update(+id, updateTicketDto);
+  update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
+    return this.bookingsService.update(+id, updateBookingDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.ticketsService.remove(+id);
+    return this.bookingsService.remove(+id);
   }
 }
