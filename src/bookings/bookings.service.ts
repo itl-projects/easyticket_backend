@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { Ticket } from 'src/tickets/entities/ticket.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Between, In, Like } from 'typeorm';
+import { Between, In, Like, Not } from 'typeorm';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { FindBookingDto } from './dto/find-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
@@ -269,6 +269,51 @@ export class BookingsService {
         },
         where: { pnr: '' },
         relations: ['user', 'passengers'],
+      },
+    );
+
+    const data = results.items.map((item) => {
+      if (item.user) delete item.user.password;
+      return item;
+    });
+
+    return {
+      status: true,
+      message: 'Booking fetched successfully',
+      data: {
+        items: data,
+        meta: results.meta,
+      },
+    };
+  }
+
+  async findAllUpdatedBookings(
+    userId: string,
+    page: string,
+    limit: string,
+    keyword: string,
+  ) {
+    const _keyword = keyword || '';
+    const _page = page ? parseInt(page) : 1;
+    const _limit = limit ? parseInt(limit) : 10;
+
+    // const results = await Booking.createQueryBuilder('booking')
+    //   .leftJoinAndSelect('booking.ticket', 'ticket')
+    //   .andWhere('ticket.user.id = :userId', { userId })
+    //   .execute();
+
+    const results = await paginate(
+      Booking.getRepository(),
+      { page: _page, limit: _limit },
+      {
+        // join: {
+        //   alias: 'booking',
+        //   leftJoinAndSelect: {
+        //     ticket: 'booking.ticket',
+        //   },
+        // },
+        where: { pnr: Not('') },
+        relations: ['user', 'passengers', 'ticket'],
       },
     );
 

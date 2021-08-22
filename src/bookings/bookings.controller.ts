@@ -70,6 +70,21 @@ export class BookingsController {
     );
   }
 
+  @Get('updated')
+  findAllUpdatedBookings(
+    @Req() request,
+    @Query('page') page: string,
+    @Query('limit') limit: string,
+    @Query('keyword') keyword: string,
+  ) {
+    return this.bookingsService.findAllUpdatedBookings(
+      request.user.userId,
+      page,
+      limit,
+      keyword,
+    );
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.bookingsService.findOne(+id);
