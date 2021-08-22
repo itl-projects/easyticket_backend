@@ -2,7 +2,6 @@ import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsNumber,
-  IsDateString,
   IsArray,
   ValidateNested,
   ArrayMinSize,
@@ -18,6 +17,10 @@ export class CreateBookingDto {
   @IsNotEmpty()
   @IsNumber()
   quantity: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  markup: number;
 
   @IsArray()
   @ValidateNested({ each: true, message: 'please fill all passenger details' })

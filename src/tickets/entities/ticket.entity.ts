@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+// import { Booking } from 'src/bookings/entities/booking.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { PreEntity } from '../../core/base.entity';
 
 @Entity()
@@ -45,8 +46,13 @@ export class Ticket extends PreEntity {
   @Column({ default: false, type: 'boolean' })
   isHotDeal: boolean;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, (user) => user.id)
+  @JoinColumn()
   user: User;
+
+  // @OneToMany(() => Booking, (passenger) => passenger.booking)
+  // @JoinColumn()
+  // passengers: Booking[];
 
   //   @BeforeInsert()
   //   async hashPassword() {

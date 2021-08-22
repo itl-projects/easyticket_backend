@@ -17,11 +17,12 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/constants/Roles';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { FindBookingDto } from './dto/find-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 
 @ApiTags('Tickets')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RolesAllowed(Roles.USER)
+@RolesAllowed(Roles.USER, Roles.ADMIN, Roles.SUPPLIER)
 @Controller('bookings')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
@@ -46,14 +47,45 @@ export class BookingsController {
     );
   }
 
+  @Post('getBookings')
+  getAllUsersBookings(@Req() request, @Body() findBooking: FindBookingDto) {
+    return this.bookingsService.findAllUserBookings(
+      request.user.userId,
+      findBooking,
+    );
+  }
+
+  @Get('pendings')
+  findAllPendings(
+    @Req() request,
+    @Query('page') page: string,
+    @Query('limit') limit: string,
+    @Query('keyword') keyword: string,
+  ) {
+    return this.bookingsService.findAllPendings(
+      request.user.userId,
+      page,
+      limit,
+      keyword,
+    );
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.bookingsService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
-    return this.bookingsService.update(+id, updateBookingDto);
+  update(
+    @Req() request,
+    @Param('id') id: string,
+    @Body() updateBookingDto: UpdateBookingDto,
+  ) {
+    return this.bookingsService.updatePNR(
+      request.user.userId,
+      id,
+      updateBookingDto,
+    );
   }
 
   @Delete(':id')

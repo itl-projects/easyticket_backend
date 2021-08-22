@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { Ticket } from 'src/tickets/entities/ticket.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Equal, Like } from 'typeorm';
+import { Between, In, Like } from 'typeorm';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { FindBookingDto } from './dto/find-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { Booking } from './entities/booking.entity';
 import { Passenger } from './entities/passenger.entity';
@@ -30,7 +31,8 @@ export class BookingsService {
         };
       }
       ticketRes.quantity = ticketRes.quantity - createBookingDto.quantity;
-      const amount = createBookingDto.quantity * ticketRes.price;
+      const amount =
+        createBookingDto.quantity * (ticketRes.price + createBookingDto.markup);
       const user = await User.findOne(userId);
       booking = Booking.create({
         ticket: ticketRes,
@@ -111,17 +113,79 @@ export class BookingsService {
         relations: ['passengers', 'ticket'],
       },
     );
-    // const data = results.items.map((item) => {
-    //   if (item.user) delete item.user.password;
-    //   return item;
-    // });
     return {
       status: true,
       message: 'Booking fetched successfully',
       data: results,
       meta: results.meta,
     };
-    return `This action returns all bookings`;
+  }
+
+  async findAllUserBookings(userId: string, findBookingDto: FindBookingDto) {
+    const conditions = {
+      user: { id: Like(userId) },
+    };
+    const _page = findBookingDto.page || 1;
+    const _limit = findBookingDto.limit || 10;
+    if (findBookingDto.bookingRef) {
+      conditions['bookingRef'] = Like(`%${findBookingDto.bookingRef}%`);
+    }
+    if (findBookingDto.pnr) {
+      conditions['pnr'] = Like(`%${findBookingDto.pnr}%`);
+    }
+    if (findBookingDto.fromDate && findBookingDto.toDate) {
+      conditions['creationDate'] = Between(
+        findBookingDto.fromDate,
+        findBookingDto.toDate,
+      );
+    } else if (findBookingDto.fromDate) {
+      const fd = new Date(findBookingDto.fromDate);
+      conditions['creationDate'] = Between(
+        new Date(fd.getTime() - 24 * 60 * 60 * 1000).toJSON(),
+        new Date(fd.getTime()).toJSON(),
+      );
+    } else if (findBookingDto.toDate) {
+      const fd = new Date(findBookingDto.toDate);
+      conditions['creationDate'] = Between(
+        new Date(fd.getTime() - 24 * 60 * 60 * 1000).toJSON(),
+        new Date(fd.getTime()).toJSON(),
+      );
+    }
+    if (findBookingDto.travelDate) {
+      const fd = new Date(findBookingDto.travelDate);
+
+      const ts = await Ticket.find({
+        where: {
+          departureDateTime: Between(
+            new Date(fd.getTime() - 24 * 60 * 60 * 1000).toJSON(),
+            new Date(fd.getTime() + 24 * 60 * 60 * 1000).toJSON(),
+          ),
+        },
+      });
+
+      conditions['ticket'] = In(ts.map((el) => el.id));
+    }
+    const results = await paginate(
+      Booking.getRepository(),
+      { page: _page, limit: _limit },
+      {
+        join: {
+          alias: 'booking',
+          leftJoinAndSelect: {
+            ticket: 'booking.ticket',
+          },
+        },
+        where: {
+          ...conditions,
+        },
+        relations: ['passengers', 'ticket'],
+      },
+    );
+    return {
+      status: true,
+      message: 'Booking fetched successfully',
+      data: results,
+    };
   }
 
   findOne(id: number) {
@@ -132,7 +196,94 @@ export class BookingsService {
     return `This action updates a #${id} booking`;
   }
 
+  async updatePNR(
+    userId: string,
+    id: string,
+    updateBookingDto: UpdateBookingDto,
+  ) {
+    try {
+      const ticket = await Ticket.find({
+        where: {
+          id: updateBookingDto.ticket,
+          user: {
+            id: userId,
+          },
+        },
+      });
+      if (ticket) {
+        const booking = await Booking.findOne(id);
+        if (booking) {
+          booking.pnr = updateBookingDto.pnr;
+          await booking.save();
+          return {
+            status: true,
+            message: 'PNR updated successfully',
+          };
+        }
+        return {
+          status: false,
+          message: 'Failed to update PNR',
+        };
+      }
+      return {
+        status: false,
+        message: 'Failed to update PNR',
+      };
+    } catch (err) {
+      return {
+        status: false,
+        message: 'Failed to update PNR',
+      };
+    }
+    return `This action updates a #${id} booking`;
+  }
+
   remove(id: number) {
     return `This action removes a #${id} booking`;
+  }
+
+  async findAllPendings(
+    userId: string,
+    page: string,
+    limit: string,
+    keyword: string,
+  ) {
+    const _keyword = keyword || '';
+    const _page = page ? parseInt(page) : 1;
+    const _limit = limit ? parseInt(limit) : 10;
+
+    // const results = await Booking.createQueryBuilder('booking')
+    //   .leftJoinAndSelect('booking.ticket', 'ticket')
+    //   .andWhere('ticket.user.id = :userId', { userId })
+    //   .execute();
+
+    const results = await paginate(
+      Booking.getRepository(),
+      { page: _page, limit: _limit },
+      {
+        join: {
+          alias: 'booking',
+          leftJoinAndSelect: {
+            ticket: 'booking.ticket',
+          },
+        },
+        where: { pnr: '' },
+        relations: ['user', 'passengers'],
+      },
+    );
+
+    const data = results.items.map((item) => {
+      if (item.user) delete item.user.password;
+      return item;
+    });
+
+    return {
+      status: true,
+      message: 'Booking fetched successfully',
+      data: {
+        items: data,
+        meta: results.meta,
+      },
+    };
   }
 }

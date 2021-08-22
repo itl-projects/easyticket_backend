@@ -42,6 +42,7 @@ export class Booking extends PreEntity {
 
   @BeforeInsert()
   async generateBookingRef() {
-    this.bookingRef = 'AET-' + (await Booking.count()) + 1000001;
+    const refCount = (await Booking.count()) + 1000001;
+    this.bookingRef = 'ET-' + refCount;
   }
 }
