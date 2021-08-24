@@ -5,13 +5,20 @@ import { SearchFlights } from './dto/search-flights.dto';
 @Injectable()
 export class FlightsService {
   async findAll(searchFlights: SearchFlights) {
+    let searchDate = searchFlights.departureDateTime.split('T')[0];
+    const today = new Date().toISOString();
+    if (today === searchFlights.departureDateTime.split('T')[0]) {
+      searchDate = new Date(
+        new Date().getTime() - 15 * 60 * 60 * 1000,
+      ).toJSON();
+    }
     const data = await Ticket.createQueryBuilder()
       .where('source = :source', { source: searchFlights.source })
       .andWhere('destination = :destination', {
         destination: searchFlights.destination,
       })
       .andWhere('departureDateTime > :departure', {
-        departure: searchFlights.departureDateTime,
+        departure: searchDate,
       })
       .andWhere('quantity >= :quantity', {
         quantity: searchFlights.quantity || 1,
