@@ -44,7 +44,9 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    return user;
+    return await User.findOne(user.id, {
+      relations: ['profile'],
+    });
   }
 
   async register(registerDto: RegisterDto) {
