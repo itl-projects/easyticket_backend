@@ -44,7 +44,7 @@ export class User extends PreEntity {
   password: string;
 
   @ApiProperty()
-  @Column({ default: true })
+  @Column({ default: false })
   isActive: boolean;
 
   @Column({ default: 0 })
@@ -59,9 +59,10 @@ export class User extends PreEntity {
   profile: UserProfile;
 
   @BeforeInsert()
-  @BeforeUpdate()
   async hashPassword() {
-    this.password = await bcrypt.hash(this.username, 8);
+    console.log(this.password);
+    if (this.password) this.password = await bcrypt.hash(this.password, 8);
+    else this.password = await bcrypt.hash(this.username, 8);
   }
 
   async validatePassword(password: string): Promise<boolean> {

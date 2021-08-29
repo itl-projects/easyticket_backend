@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Between, Equal, MoreThanOrEqual } from 'typeorm';
 import { Ticket } from '../tickets/entities/ticket.entity';
 import { SearchFlights } from './dto/search-flights.dto';
 
@@ -7,21 +8,22 @@ export class FlightsService {
   async findAll(searchFlights: SearchFlights) {
     let searchDate = searchFlights.departureDateTime.split('T')[0];
     const today = new Date().toISOString();
-    if (today === searchFlights.departureDateTime.split('T')[0]) {
+    if (today.split('T')[0] === searchDate) {
       searchDate = new Date(
         new Date().getTime() - 15 * 60 * 60 * 1000,
       ).toJSON();
     }
     const data = await Ticket.createQueryBuilder()
-      .where('source = :source', { source: searchFlights.source })
-      .andWhere('destination = :destination', {
-        destination: searchFlights.destination,
-      })
-      .andWhere('departureDateTime > :departure', {
-        departure: searchDate,
-      })
-      .andWhere('quantity >= :quantity', {
-        quantity: searchFlights.quantity || 1,
+      .where({
+        source: searchFlights.source,
+        departureDateTime: Between(
+          searchDate,
+          new Date(
+            new Date(searchDate).getTime() + 24 * 60 * 60 * 1000,
+          ).toISOString(),
+        ),
+        quantity: MoreThanOrEqual(searchFlights.quantity || 1),
+        destination: Equal(searchFlights.destination),
       })
       .getMany();
     if (data.length) {
@@ -73,5 +75,55 @@ export class FlightsService {
       message: 'Invalid ID',
       data: null,
     };
+  }
+
+  async getHotDeals(source: number) {
+    try {
+      const searchDate = new Date(
+        new Date().getTime() + 15 * 60 * 60 * 1000,
+      ).toJSON();
+      const data = await Ticket.createQueryBuilder()
+        .select([
+          'DISTINCT (Ticket.destination) AS destination',
+          'departureDateTime',
+          'source',
+        ])
+        .where({
+          source: source,
+          quantity: MoreThanOrEqual(1),
+          departureDateTime: MoreThanOrEqual(searchDate),
+        })
+        .orderBy('departureDateTime')
+        .getRawMany();
+
+      if (data) {
+        const destinations = [];
+        const result = data.filter((newVal) => {
+          if (destinations.indexOf(newVal.destination) === -1) {
+            destinations.push(newVal.destination);
+            return newVal;
+          }
+        });
+
+        return {
+          status: true,
+          message: 'Hot Deal found',
+          data: result,
+        };
+      }
+
+      return {
+        status: true,
+        message: 'Hot Deal found',
+        data: data,
+      };
+    } catch (err) {
+      console.log(err);
+      return {
+        status: false,
+        message: 'No Deal found',
+        data: null,
+      };
+    }
   }
 }

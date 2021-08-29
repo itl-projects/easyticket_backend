@@ -19,6 +19,11 @@ export class FlightsController {
     return this.flightsService.findAll(searchFlights);
   }
 
+  @Get('hotdeals/:source')
+  flightHotDeals(@Param('source') source: string) {
+    return this.flightsService.getHotDeals(+source);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.flightsService.findOne(id);

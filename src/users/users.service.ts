@@ -10,7 +10,7 @@ import { Roles } from 'src/constants/Roles';
 @Injectable()
 export class UsersService {
   async create(createUserDto: CreateUserDto) {
-    const user_data = { ...createUserDto };
+    const user_data = { ...createUserDto, isActive: true };
 
     if (!createUserDto.commision) {
       delete user_data.commision;

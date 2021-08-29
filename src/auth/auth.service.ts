@@ -1,9 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Roles } from 'src/constants/Roles';
+import { UserProfile } from 'src/users/entities/profile.entity';
 
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { AuthLoginDto } from './dto/auth-login.dto';
+import { RegisterDto } from './dto/auth-register.dto';
 
 @Injectable()
 export class AuthService {
@@ -35,5 +38,47 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  async register(registerDto: RegisterDto) {
+    try {
+      const count = (await User.find({ role: Roles.USER })).length;
+      const userData = {
+        firstName: registerDto.firstName,
+        lastName: registerDto.lastName,
+        email: registerDto.email,
+        password: registerDto.password,
+        phone: String(registerDto.phone),
+        username: 'AGT-' + count,
+      };
+
+      const user = User.create(userData);
+      await user.save();
+
+      const profile = new UserProfile();
+      profile.city = registerDto.city;
+      profile.state = registerDto.state;
+      profile.pan = '';
+      profile.company = registerDto.company || '';
+
+      await profile.save();
+
+      user.profile = profile;
+      await user.save();
+
+      delete user.password;
+
+      return {
+        success: true,
+        message: 'Registration successfully!',
+        data: user,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: 'Failed to create account!',
+        data: null,
+      };
+    }
   }
 }
