@@ -18,6 +18,13 @@ export class AuthService {
   async login(authLoginDto: AuthLoginDto) {
     const user = await this.validateUser(authLoginDto);
 
+    if (!user.isActive) {
+      return {
+        success: false,
+        message: 'Your account is disabled. Please contact administrator.',
+      };
+    }
+
     const payload = {
       userId: user.id,
     };
@@ -50,6 +57,7 @@ export class AuthService {
         password: registerDto.password,
         phone: String(registerDto.phone),
         username: 'AGT-' + count,
+        isActive: false,
       };
 
       const user = User.create(userData);

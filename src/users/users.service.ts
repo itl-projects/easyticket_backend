@@ -6,6 +6,7 @@ import { UserProfile } from './entities/profile.entity';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { Like, Not } from 'typeorm';
 import { Roles } from 'src/constants/Roles';
+import { UpdateAccountStatusDto } from './dto/update-account-status-dto';
 
 @Injectable()
 export class UsersService {
@@ -86,6 +87,32 @@ export class UsersService {
 
   update(id: number, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
+  }
+
+  async updateAccountStatus(
+    id: string,
+    updateAccountStatusDto: UpdateAccountStatusDto,
+  ) {
+    try {
+      const user = await User.findOne(id);
+      if (user) {
+        user.isActive = updateAccountStatusDto.status;
+        await user.save();
+        return {
+          success: true,
+          message: 'Account status changes successfully',
+        };
+      }
+      return {
+        success: false,
+        message: 'Failed to update account status',
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: 'Failed to update account status',
+      };
+    }
   }
 
   remove(id: number) {

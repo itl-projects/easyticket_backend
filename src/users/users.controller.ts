@@ -17,6 +17,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/constants/Roles';
 import { RolesAllowed } from 'src/auth/decorators/roles.decorator';
+import { UpdateAccountStatusDto } from './dto/update-account-status-dto';
 
 @ApiTags('Users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -56,6 +57,14 @@ export class UsersController {
     @Query('keyword') keyword: string,
   ) {
     return this.usersService.findAll(page, limit, keyword);
+  }
+
+  @Patch('changeAccountStatus/:id')
+  updateAccountStatus(
+    @Param('id') id: string,
+    @Body() updateAccountStatusDto: UpdateAccountStatusDto,
+  ) {
+    return this.usersService.updateAccountStatus(id, updateAccountStatusDto);
   }
 
   @Patch(':id')
