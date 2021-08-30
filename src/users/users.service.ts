@@ -4,7 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { UserProfile } from './entities/profile.entity';
 import { paginate } from 'nestjs-typeorm-paginate';
-import { Like, Not } from 'typeorm';
+import { In, Like, Not } from 'typeorm';
 import { Roles } from 'src/constants/Roles';
 import { UpdateAccountStatusDto } from './dto/update-account-status-dto';
 
@@ -117,5 +117,40 @@ export class UsersService {
 
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+
+  async getActiveUsers() {
+    try {
+      const users = await User.find({
+        where: {
+          role: In([1, 3]),
+        },
+        select: ['role', 'isActive'],
+        order: { role: 'ASC' },
+      });
+      if (users.length <= 0) {
+        return {
+          success: false,
+        };
+      }
+      return {
+        success: true,
+        data: {
+          agents: {
+            total: users.filter((el) => el.role === 1).length,
+            active: users.filter((el) => el.role === 1 && el.isActive).length,
+          },
+          suppliers: {
+            total: users.filter((el) => el.role === 3).length,
+            active: users.filter((el) => el.role === 3 && el.isActive).length,
+          },
+        },
+      };
+    } catch (err) {
+      console.log(err);
+      return {
+        success: false,
+      };
+    }
   }
 }

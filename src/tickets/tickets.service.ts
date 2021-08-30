@@ -79,6 +79,9 @@ export class TicketsService {
         where: {
           user: Equal(userId),
         },
+        order: {
+          creationDate: 'DESC',
+        },
         relations: ['user'],
       },
     );

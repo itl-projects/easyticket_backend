@@ -31,6 +31,11 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @Get('get-active-users')
+  getActiveUsers() {
+    return this.usersService.getActiveUsers();
+  }
+
   @Get(':id')
   show(@Param('id') id: string) {
     const user = this.usersService.showById(id);
