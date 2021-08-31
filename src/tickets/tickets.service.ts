@@ -117,7 +117,19 @@ export class TicketsService {
     return `This action updates a #${id} ticket`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} ticket`;
+  async remove(id: string) {
+    const ticket = await (await Ticket.findOne(id)).softRemove();
+    if (ticket) {
+      return {
+        success: true,
+        message: 'Ticket removed successfully',
+        data: ticket,
+      };
+    }
+    return {
+      success: false,
+      message: 'Failed to remove ticket',
+      data: null,
+    };
   }
 }

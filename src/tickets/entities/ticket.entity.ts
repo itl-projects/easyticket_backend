@@ -1,7 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 // import { Booking } from 'src/bookings/entities/booking.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+} from 'typeorm';
 import { PreEntity } from '../../core/base.entity';
 
 @Entity()
@@ -49,6 +55,9 @@ export class Ticket extends PreEntity {
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn()
   user: User;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 
   // @OneToMany(() => Booking, (passenger) => passenger.booking)
   // @JoinColumn()
