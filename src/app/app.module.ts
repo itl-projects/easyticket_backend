@@ -46,4 +46,9 @@ const entities = [User, UserProfile, Ticket, Booking, Passenger];
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  constructor() {
+    process.env.TZ = 'Asia/Kolkata';
+    console.log(new Date());
+  }
+}
