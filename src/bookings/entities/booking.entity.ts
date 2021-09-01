@@ -30,7 +30,9 @@ export class Booking extends PreEntity {
   @Column()
   passengerCount: number;
 
-  @ManyToOne(() => Ticket)
+  @ManyToOne(() => Ticket, (ticket) => ticket.id, {
+    onDelete: 'SET NULL',
+  })
   ticket: Ticket;
 
   @ManyToOne(() => User)

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { Ticket } from 'src/tickets/entities/ticket.entity';
 import { User } from 'src/users/entities/user.entity';
+import { IsNull } from 'typeorm';
 import { Between, In, Like, Not } from 'typeorm';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { FindBookingDto } from './dto/find-booking.dto';
@@ -109,7 +110,10 @@ export class BookingsService {
       Booking.getRepository(),
       { page: _page, limit: _limit },
       {
-        where: { user: { id: Like(userId) } },
+        where: {
+          user: { id: Like(userId) },
+          ticket: Not(IsNull()),
+        },
         relations: ['passengers', 'ticket'],
       },
     );
@@ -177,6 +181,7 @@ export class BookingsService {
         },
         where: {
           ...conditions,
+          ticket: Not(IsNull()),
         },
         relations: ['passengers', 'ticket'],
       },
@@ -267,8 +272,9 @@ export class BookingsService {
             ticket: 'booking.ticket',
           },
         },
-        where: { pnr: '' },
-        relations: ['user', 'passengers'],
+        where: { pnr: '', ticket: Not(IsNull()) },
+        order: { creationDate: 'DESC' },
+        relations: ['user', 'passengers', 'ticket'],
       },
     );
 
@@ -312,7 +318,7 @@ export class BookingsService {
         //     ticket: 'booking.ticket',
         //   },
         // },
-        where: { pnr: Not('') },
+        where: { pnr: Not(''), ticket: Not(IsNull()) },
         relations: ['user', 'passengers', 'ticket'],
       },
     );

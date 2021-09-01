@@ -79,9 +79,7 @@ export class FlightsService {
 
   async getHotDeals(source: number) {
     try {
-      const searchDate = new Date(
-        new Date().getTime() + 15 * 60 * 60 * 1000,
-      ).toJSON();
+      const searchDate = new Date(new Date().getTime()).toJSON();
       const data = await Ticket.createQueryBuilder()
         .select([
           'DISTINCT (Ticket.destination) AS destination',

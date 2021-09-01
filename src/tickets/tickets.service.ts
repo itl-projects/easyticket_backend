@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { paginate } from 'nestjs-typeorm-paginate';
+import { identity } from 'rxjs';
+import { Booking } from 'src/bookings/entities/booking.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Equal } from 'typeorm';
 import { CreateTicketDto } from './dto/create-ticket.dto';
@@ -118,7 +120,8 @@ export class TicketsService {
   }
 
   async remove(id: string) {
-    const ticket = await (await Ticket.findOne(id)).softRemove();
+    const ticket = await (await Ticket.findOne(id)).remove();
+
     if (ticket) {
       return {
         success: true,
