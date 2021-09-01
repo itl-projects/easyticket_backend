@@ -9,10 +9,10 @@
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "env TZ='asia/kolkata' node dist/main.js",
+    "start": "export TZ='asia/kolkata' && node dist/main.js",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main.js",
+    "start:prod": "export TZ='asia/kolkata' &&  node dist/main.js",
     "heroku-postbuild": "npm install --only=dev --no-shrinkwrap && npm run build"
   },
   "dependencies": {
