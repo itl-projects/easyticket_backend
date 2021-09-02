@@ -34,11 +34,11 @@ export class CreateTicketDto {
   flightNumber: string;
 
   @IsNotEmpty()
-  @IsNumberString()
+  @IsNumber()
   price: number;
 
   @IsNotEmpty()
-  @IsNumberString()
+  @IsNumber()
   quantity: number;
 
   @IsNotEmpty()
