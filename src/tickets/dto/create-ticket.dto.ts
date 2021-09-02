@@ -5,6 +5,7 @@ import {
   IsDateString,
   IsAlphanumeric,
   IsNumberString,
+  IsOptional,
 } from 'class-validator';
 
 export class CreateTicketDto {
@@ -47,4 +48,7 @@ export class CreateTicketDto {
   @IsNotEmpty()
   @IsBoolean()
   isHotDeal: boolean;
+
+  @IsOptional()
+  note: string;
 }

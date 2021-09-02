@@ -52,6 +52,10 @@ export class Ticket extends PreEntity {
   @Column({ default: false, type: 'boolean' })
   isHotDeal: boolean;
 
+  @ApiProperty()
+  @Column()
+  note: string;
+
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn()
   user: User;

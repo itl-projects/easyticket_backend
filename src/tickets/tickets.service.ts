@@ -77,6 +77,7 @@ export class TicketsService {
           'quantity',
           'user',
           'creationDate',
+          'note',
         ],
         where: {
           user: Equal(userId),
@@ -115,8 +116,22 @@ export class TicketsService {
     };
   }
 
-  update(id: number, updateTicketDto: UpdateTicketDto) {
-    return `This action updates a #${id} ticket`;
+  async update(id: string, updateTicketDto: UpdateTicketDto) {
+    const ticket = await Ticket.createQueryBuilder()
+      .update()
+      .set(updateTicketDto)
+      .where('id = :ticketId', { ticketId: id })
+      .execute();
+    if (ticket) {
+      return {
+        success: true,
+        message: 'Success! Ticket updated Successfully',
+      };
+    }
+    return {
+      success: false,
+      message: 'Sorry! Failed to update ticket',
+    };
   }
 
   async remove(id: string) {
