@@ -1,11 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { ConsoleLogger, Injectable } from '@nestjs/common';
+import { MarkUp } from 'src/settings/entities/markup.entity';
+import { User } from 'src/users/entities/user.entity';
 import { Between, Equal, MoreThanOrEqual } from 'typeorm';
 import { Ticket } from '../tickets/entities/ticket.entity';
 import { SearchFlights } from './dto/search-flights.dto';
 
 @Injectable()
 export class FlightsService {
-  async findAll(searchFlights: SearchFlights) {
+  async findAll(userId: string, searchFlights: SearchFlights) {
     let searchDate = searchFlights.departureDateTime.split('T')[0];
     const today = new Date().toISOString();
     if (today.split('T')[0] === searchDate) {
@@ -26,11 +28,36 @@ export class FlightsService {
         destination: Equal(searchFlights.destination),
       })
       .getMany();
+
     if (data.length) {
+      const user = await User.findOne(userId, {
+        loadRelationIds: true,
+      });
+
+      if (user.markup) {
+        const markup = await MarkUp.findOne(user.markup);
+        const markupPrice =
+          markup.type === 'pnr'
+            ? markup.price
+            : searchFlights.quantity * markup.price;
+        const filtered = data.map((item) => ({
+          ...item,
+          price: searchFlights.quantity * item.price + markupPrice,
+        }));
+
+        return {
+          status: true,
+          message: 'Flight found',
+          data: filtered,
+        };
+      }
       return {
         status: true,
         message: 'Flight found',
-        data: data,
+        data: data.map((item) => ({
+          ...item,
+          price: searchFlights.quantity * item.price,
+        })),
       };
     }
     return {

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { paginate } from 'nestjs-typeorm-paginate';
+import { MarkUp } from 'src/settings/entities/markup.entity';
 import { Ticket } from 'src/tickets/entities/ticket.entity';
 import { User } from 'src/users/entities/user.entity';
 import { IsNull } from 'typeorm';
@@ -32,9 +33,21 @@ export class BookingsService {
         };
       }
       ticketRes.quantity = ticketRes.quantity - createBookingDto.quantity;
-      const amount =
-        createBookingDto.quantity * (ticketRes.price + createBookingDto.markup);
-      const user = await User.findOne(userId);
+      let amount =
+        createBookingDto.quantity * ticketRes.price + createBookingDto.markup;
+      const user = await User.findOne(userId, {
+        loadRelationIds: true,
+      });
+
+      if (user.markup) {
+        const markup = await MarkUp.findOne(user.markup);
+        const markupPrice =
+          markup.type === 'pnr'
+            ? markup.price
+            : ticketRes.quantity * markup.price;
+        amount += markupPrice;
+      }
+
       booking = Booking.create({
         ticket: ticketRes,
         amount,

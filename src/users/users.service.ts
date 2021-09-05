@@ -7,6 +7,9 @@ import { paginate } from 'nestjs-typeorm-paginate';
 import { In, Like, Not } from 'typeorm';
 import { Roles } from 'src/constants/Roles';
 import { UpdateAccountStatusDto } from './dto/update-account-status-dto';
+import { MarkUp } from 'src/settings/entities/markup.entity';
+import { UserMarkup } from './entities/markup.entity';
+import { UserMarkupsDto } from './dto/user-markup.dto';
 
 @Injectable()
 export class UsersService {
@@ -66,7 +69,7 @@ export class UsersService {
           firstName: Like('%' + _keyword + '%'),
           role: Not(Roles.ADMIN),
         },
-        relations: ['profile'],
+        relations: ['profile', 'markup'],
       },
     );
   }
@@ -150,6 +153,99 @@ export class UsersService {
       console.log(err);
       return {
         success: false,
+      };
+    }
+  }
+}
+
+@Injectable()
+export class UsersMarkupService {
+  async create(userMarkupsDto: UserMarkupsDto) {
+    try {
+      const user = await User.findOneOrFail(userMarkupsDto.agentId, {
+        loadRelationIds: true,
+      });
+      if (!user) {
+        return {
+          success: false,
+          message: 'Sorry! Specified user not found',
+        };
+      }
+      const markup = await MarkUp.findOneOrFail(userMarkupsDto.markupId);
+      if (!markup) {
+        return {
+          success: false,
+          message: 'Sorry! Markup not found',
+        };
+      }
+      if (user.markup) {
+        await User.createQueryBuilder()
+          .update()
+          .set({ markup: markup })
+          .where('id =:user', {
+            user: user.id,
+          })
+          .execute();
+
+        return {
+          success: true,
+          message: 'Markup updated successfully !',
+        };
+      } else {
+        user.markup = markup;
+        await user.save();
+        return {
+          success: true,
+          message: 'Markup added to user successfully !',
+        };
+      }
+    } catch (err) {
+      console.log('Error : ', err);
+      return {
+        success: false,
+        message: 'Sorry! Failed update markup',
+      };
+    }
+  }
+
+  async findById(id: string) {
+    try {
+      const userMarkup = await UserMarkup.findOne(id);
+      return {
+        success: true,
+        markup: userMarkup,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: 'Sorry! failed to find markups',
+      };
+    }
+  }
+
+  async remove(userId: string) {
+    try {
+      const user = await User.createQueryBuilder()
+        .update()
+        .set({ markup: null })
+        .where('id =:user', {
+          user: userId,
+        })
+        .execute();
+      if (user) {
+        return {
+          success: true,
+          message: 'Markup removed successfully!',
+        };
+      }
+      return {
+        success: false,
+        message: 'Sorry! Failed to remove user markup',
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: 'Sorry! Failed remove user markup',
       };
     }
   }

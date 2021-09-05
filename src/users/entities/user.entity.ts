@@ -1,16 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   BeforeInsert,
-  BeforeUpdate,
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToOne,
 } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { Roles } from '../../constants/Roles';
 import { PreEntity } from '../../core/base.entity';
 import { UserProfile } from './profile.entity';
+import { MarkUp } from 'src/settings/entities/markup.entity';
 
 export enum RoleEnum {
   ADMIN,
@@ -58,9 +59,12 @@ export class User extends PreEntity {
   @JoinColumn()
   profile: UserProfile;
 
+  @ManyToOne(() => MarkUp, (markup) => markup.id)
+  @JoinColumn()
+  markup: MarkUp;
+
   @BeforeInsert()
   async hashPassword() {
-    console.log(this.password);
     if (this.password) this.password = await bcrypt.hash(this.password, 8);
     else this.password = await bcrypt.hash(this.username, 8);
   }
