@@ -53,6 +53,60 @@ export class TicketsService {
     }
   }
 
+  async createBulk(createTicketDto: CreateTicketDto[], userId: string) {
+    try {
+      for (let i = 0; i < createTicketDto.length; i++) {
+        if (createTicketDto[i].source === createTicketDto[i].destination) {
+          return {
+            status: false,
+            message: 'Source and destination should not be same',
+            data: null,
+          };
+        }
+        if (
+          new Date(createTicketDto[i].arrivalDateTime) <=
+          new Date(createTicketDto[i].departureDateTime)
+        ) {
+          return {
+            status: false,
+            message: 'Incorrect departure and arrival datetime',
+            data: null,
+          };
+        }
+      }
+
+      const user = await User.findOne(userId);
+      const values = createTicketDto.map((el) => ({
+        ...el,
+        user: user,
+      }));
+      const ticket = await Ticket.createQueryBuilder()
+        .insert()
+        .into(Ticket)
+        .values(values)
+        .execute();
+      if (ticket) {
+        return {
+          status: true,
+          message: 'Ticket created successfully',
+          data: ticket,
+        };
+      } else
+        return {
+          status: false,
+          message: 'Failed to create Ticket',
+          data: null,
+        };
+    } catch (err) {
+      console.log(err);
+      return {
+        status: false,
+        message: 'Internal server error',
+        data: null,
+      };
+    }
+  }
+
   async findAll(userId: string, page: string, limit: string, keyword: string) {
     const _keyword = keyword || '';
     const _page = page ? parseInt(page) : 1;

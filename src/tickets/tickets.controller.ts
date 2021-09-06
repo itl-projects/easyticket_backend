@@ -31,6 +31,11 @@ export class TicketsController {
     return this.ticketsService.create(createTicketDto, request.user.userId);
   }
 
+  @Post('create-bulk')
+  createBulk(@Req() request, @Body() createTicketDto: CreateTicketDto[]) {
+    return this.ticketsService.createBulk(createTicketDto, request.user.userId);
+  }
+
   @Get()
   findAll(
     @Req() request,
