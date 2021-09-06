@@ -7,7 +7,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api/v1');
   app.enableCors({
-    origin: 'easyticketapp.herokuapp.com',
+    origin: 'https://easyticketapp.herokuapp.com',
   });
   const config = new DocumentBuilder()
     .setTitle('Easy Ticket')
