@@ -18,6 +18,7 @@ import { TicketsModule } from 'src/tickets/tickets.module';
 import { FlightsModule } from 'src/flights/flights.module';
 import { BookingsModule } from 'src/bookings/bookings.module';
 import { SettingsModule } from 'src/settings/settings.module';
+import { Credit } from 'src/credits/entities/credit.entity';
 
 const entities = [
   User,
@@ -27,6 +28,7 @@ const entities = [
   Passenger,
   MarkUp,
   UserMarkup,
+  Credit,
 ];
 
 @Module({

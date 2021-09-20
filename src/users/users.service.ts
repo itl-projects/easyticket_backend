@@ -14,6 +14,12 @@ import { UserMarkupsDto } from './dto/user-markup.dto';
 @Injectable()
 export class UsersService {
   async create(createUserDto: CreateUserDto) {
+    if (createUserDto.role === Roles.ADMIN) {
+      return {
+        success: false,
+        message: 'User Type not found!',
+      };
+    }
     const user_data = { ...createUserDto, isActive: true };
 
     if (!createUserDto.commision) {
@@ -82,9 +88,14 @@ export class UsersService {
 
   async findByEmail(email: string) {
     return await User.findOne({
-      where: {
-        email: email,
-      },
+      where: [
+        {
+          email: email,
+        },
+        {
+          phone: email,
+        },
+      ],
     });
   }
 

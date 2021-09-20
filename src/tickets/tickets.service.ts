@@ -135,7 +135,7 @@ export class TicketsService {
           user: Equal(userId),
         },
         order: {
-          creationDate: 'DESC',
+          departureDateTime: 'ASC',
         },
         relations: ['user'],
       },
