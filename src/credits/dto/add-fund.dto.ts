@@ -1,6 +1,10 @@
 import { IsNotEmpty, IsOptional, IsNumber, IsString } from 'class-validator';
 
-export class CreateCreditDto {
+export class AddFundCreditDto {
+  @IsNotEmpty()
+  @IsString()
+  agent: string;
+
   @IsNotEmpty()
   @IsNumber()
   amount: number;

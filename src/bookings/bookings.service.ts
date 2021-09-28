@@ -47,7 +47,13 @@ export class BookingsService {
             : ticketRes.quantity * markup.price;
         amount += markupPrice;
       }
-
+      if (user.commision < amount) {
+        return {
+          status: false,
+          message: `Booking failed! insufficient account balance`,
+          data: null,
+        };
+      }
       booking = Booking.create({
         ticket: ticketRes,
         amount,
@@ -76,6 +82,8 @@ export class BookingsService {
       if (
         passengers.identifiers.length === createBookingDto.passengers.length
       ) {
+        user.commision -= amount;
+        await user.save();
         const data = await Booking.findOne(booking.id, {
           relations: ['passengers', 'ticket'],
         });
@@ -99,7 +107,6 @@ export class BookingsService {
         };
       }
     } catch (err) {
-      console.log(err);
       ticketRes.quantity = ticketRes.quantity + createBookingDto.quantity;
       passengers &&
         passengers.identifiers.map(

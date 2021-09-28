@@ -19,6 +19,7 @@ import { FlightsModule } from 'src/flights/flights.module';
 import { BookingsModule } from 'src/bookings/bookings.module';
 import { SettingsModule } from 'src/settings/settings.module';
 import { Credit } from 'src/credits/entities/credit.entity';
+import { CreditsModule } from 'src/credits/credits.module';
 
 const entities = [
   User,
@@ -56,6 +57,7 @@ const entities = [
     FlightsModule,
     BookingsModule,
     SettingsModule,
+    CreditsModule,
   ],
   controllers: [],
   providers: [],

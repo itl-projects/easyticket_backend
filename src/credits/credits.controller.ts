@@ -16,7 +16,9 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/constants/Roles';
 import { CreditsAdminService, CreditsService } from './credits.service';
+import { AddFundCreditDto } from './dto/add-fund.dto';
 import { CreateCreditDto } from './dto/create-credit.dto';
+import { FindCreditDto } from './dto/find-credit.dto';
 import { UpdateCreditDto } from './dto/update-credit.dto';
 
 @ApiTags('Credits')
@@ -27,33 +29,13 @@ export class CreditsController {
   constructor(private readonly creditsService: CreditsService) {}
 
   @Post()
-  create(@Body() createCreditDto: CreateCreditDto) {
-    return this.creditsService.create(createCreditDto);
+  create(@Req() request, @Body() createCreditDto: CreateCreditDto) {
+    return this.creditsService.create(request.user.userId, createCreditDto);
   }
 
-  @Get()
-  findAll(
-    @Req() request,
-    @Query('page') page: string,
-    @Query('limit') limit: string,
-    @Query('keyword') keyword: string,
-  ) {
-    return this.creditsService.findAll(
-      request.user.userId,
-      page,
-      limit,
-      keyword,
-    );
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.creditsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCreditDto: UpdateCreditDto) {
-    return this.creditsService.update(+id, updateCreditDto);
+  @Post('agent-credits')
+  findAll(@Req() request, @Body() findCreditDto: FindCreditDto) {
+    return this.creditsService.findAll(request.user.userId, findCreditDto);
   }
 
   @Delete(':id')
@@ -69,27 +51,38 @@ export class CreditsController {
 export class CreditsAdminController {
   constructor(private readonly creditsAdminService: CreditsAdminService) {}
 
-  @Get()
-  findAll(
-    @Query('page') page: string,
-    @Query('limit') limit: string,
-    @Query('keyword') keyword: string,
-  ) {
-    return this.creditsAdminService.findAllCredits(page, limit, keyword);
+  @Post('add-fund')
+  addFund(@Body() addFundCreditDto: AddFundCreditDto) {
+    return this.creditsAdminService.addFund(addFundCreditDto);
+  }
+
+  @Post('requests')
+  findAll(@Req() request, @Body() findCreditDto: FindCreditDto) {
+    return this.creditsAdminService.findAll(request.user.userId, findCreditDto);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.creditsAdminService.findOne(+id);
+    return this.creditsAdminService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCreditDto: UpdateCreditDto) {
-    return this.creditsAdminService.update(+id, updateCreditDto);
+  @Patch('approve/:id')
+  approveRequest(@Param('id') id: string) {
+    return this.creditsAdminService.approveCreditRequest(id);
+  }
+
+  @Patch('settle/:id')
+  settleRequest(@Param('id') id: string) {
+    return this.creditsAdminService.settleCreditRequest(id);
+  }
+
+  @Patch('decline/:id')
+  calcelRequest(@Param('id') id: string) {
+    return this.creditsAdminService.cancelCreditRequest(id);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.creditsAdminService.remove(+id);
+    return this.creditsAdminService.remove(id);
   }
 }

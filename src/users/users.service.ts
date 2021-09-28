@@ -167,6 +167,38 @@ export class UsersService {
       };
     }
   }
+
+  async findByUsername(name: string) {
+    try {
+      const users = await User.createQueryBuilder()
+        .where('role =:role', { role: Roles.USER })
+        .orHaving('username LIKE :username', {
+          username: name,
+        })
+        .orHaving('lastName LIKE :lastName', {
+          lastName: name,
+        })
+        .orHaving('firstName LIKE :firstName', {
+          firstName: name,
+        })
+        .getMany();
+
+      return {
+        success: true,
+        users: users.map((item) => ({
+          username: item.username,
+          id: item.id,
+          firstName: item.firstName,
+          lastName: item.lastName,
+        })),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: 'Sorry! failed to find markups',
+      };
+    }
+  }
 }
 
 @Injectable()

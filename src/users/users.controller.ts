@@ -78,6 +78,11 @@ export class UsersController {
     return this.usersService.update(+id, updateUserDto);
   }
 
+  @Get('match-user/:name')
+  findByUsername(@Param('name') name: string) {
+    return this.usersService.findByUsername(name);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);

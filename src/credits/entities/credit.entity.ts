@@ -18,7 +18,7 @@ export class Credit extends PreEntity {
   requestDate: Date;
 
   @ApiProperty()
-  @Column()
+  @Column({ default: null })
   transferDate: Date;
 
   @ApiProperty()

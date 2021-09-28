@@ -1,4 +1,7 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateCreditDto } from './create-credit.dto';
+import { IsNotEmpty, IsString } from 'class-validator';
 
-export class UpdateCreditDto extends PartialType(CreateCreditDto) {}
+export class UpdateCreditDto {
+  @IsNotEmpty()
+  @IsString()
+  status: string;
+}

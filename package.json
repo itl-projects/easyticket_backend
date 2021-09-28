@@ -12,7 +12,7 @@
     "start": "export TZ='asia/kolkata' && node dist/main.js",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "export TZ='asia/kolkata' &&  node dist/main.js",
+    "start:prod": "node dist/main.js",
     "heroku-postbuild": "npm install --only=dev --no-shrinkwrap && npm run build"
   },
   "dependencies": {

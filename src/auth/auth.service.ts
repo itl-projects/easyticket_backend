@@ -91,4 +91,20 @@ export class AuthService {
       };
     }
   }
+
+  async getUserDetails(id: string) {
+    try {
+      const user = await User.findOneOrFail(id);
+      delete user.password;
+      return {
+        success: true,
+        user: user,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        user: null,
+      };
+    }
+  }
 }
