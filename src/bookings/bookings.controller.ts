@@ -70,19 +70,9 @@ export class BookingsController {
     );
   }
 
-  @Get('updated')
-  findAllUpdatedBookings(
-    @Req() request,
-    @Query('page') page: string,
-    @Query('limit') limit: string,
-    @Query('keyword') keyword: string,
-  ) {
-    return this.bookingsService.findAllUpdatedBookings(
-      request.user.userId,
-      page,
-      limit,
-      keyword,
-    );
+  @Post('updated')
+  findAllUpdatedBookings(@Body() findBookingDto: FindBookingDto) {
+    return this.bookingsService.findAllUpdatedBookings(findBookingDto);
   }
 
   @Get(':id')

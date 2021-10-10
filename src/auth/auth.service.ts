@@ -94,7 +94,9 @@ export class AuthService {
 
   async getUserDetails(id: string) {
     try {
-      const user = await User.findOneOrFail(id);
+      const user = await User.findOneOrFail(id, {
+        relations: ['profile'],
+      });
       delete user.password;
       return {
         success: true,

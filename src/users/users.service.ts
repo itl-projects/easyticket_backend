@@ -10,6 +10,8 @@ import { UpdateAccountStatusDto } from './dto/update-account-status-dto';
 import { MarkUp } from 'src/settings/entities/markup.entity';
 import { UserMarkup } from './entities/markup.entity';
 import { UserMarkupsDto } from './dto/user-markup.dto';
+import { ChangePasswordDto } from './dto/change-password.dto.';
+import { UpdateProfileInfoDto } from './dto/profile-info-update.dto';
 
 @Injectable()
 export class UsersService {
@@ -289,6 +291,123 @@ export class UsersMarkupService {
       return {
         success: false,
         message: 'Sorry! Failed remove user markup',
+      };
+    }
+  }
+}
+
+@Injectable()
+export class AgentProfileService {
+  async toggleTicketLogo(userId: string) {
+    try {
+      const user = await User.findOneOrFail(userId);
+      if (user) {
+        user.ticketLogoEnabled = !user.ticketLogoEnabled;
+        await user.save();
+        return {
+          success: true,
+          message: 'Ticket logo status changed successfully',
+          ticketLogoStatus: user.ticketLogoEnabled,
+        };
+      }
+      return {
+        success: false,
+        message: 'Failed to update ticket logo status',
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: 'Failed to update ticket logo status',
+      };
+    }
+  }
+
+  async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+    try {
+      const user = await User.findOneOrFail(userId);
+      if (user) {
+        if (!(await user.validatePassword(changePasswordDto.oldPassword))) {
+          return {
+            success: false,
+            message: "Failed! old password doesn't matched",
+          };
+        }
+        user.password = await user.hashNewPassword(
+          changePasswordDto.newPassword,
+        );
+        await user.save();
+        return {
+          success: true,
+          message: 'Password changed successfully',
+        };
+      }
+      return {
+        success: false,
+        message: 'Failed user not found.',
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: 'Failed to change user password',
+      };
+    }
+  }
+
+  async changeProfileImage(userId: string, path: string) {
+    try {
+      const user = await User.findOneOrFail(userId, { relations: ['profile'] });
+      if (user) {
+        user.profile.profile_image = path.replace(/\\/g, '\\');
+        await user.profile.save();
+        delete user.password;
+        return {
+          success: true,
+          message: 'Profile image changed successfully',
+          imagePath: path.replace(/\\/g, '\\'),
+          user,
+        };
+      }
+      return {
+        success: false,
+        message: 'Failed user not found.',
+      };
+    } catch (err) {
+      console.log(err);
+      return {
+        success: false,
+        message: 'Failed to change profile image ',
+      };
+    }
+  }
+
+  async updateProfileInfo(
+    userId: string,
+    updateProfileInfoDto: UpdateProfileInfoDto,
+  ) {
+    try {
+      const user = await User.findOneOrFail(userId, { relations: ['profile'] });
+      if (user) {
+        const profile = await UserProfile.findOneOrFail(user.profile.id);
+        user.firstName = updateProfileInfoDto.firstName;
+        user.lastName = updateProfileInfoDto.lastName;
+        await user.save();
+        profile.address = updateProfileInfoDto.address;
+        profile.company = updateProfileInfoDto.company;
+        await profile.save();
+        return {
+          success: true,
+          message: 'Profile info updated successfully',
+        };
+      }
+      return {
+        success: false,
+        message: 'Failed to updated profile info',
+      };
+    } catch (err) {
+      console.log(err);
+      return {
+        success: false,
+        message: 'Failed to update profile info',
       };
     }
   }

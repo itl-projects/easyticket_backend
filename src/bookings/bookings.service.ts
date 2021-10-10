@@ -313,48 +313,82 @@ export class BookingsService {
     };
   }
 
-  async findAllUpdatedBookings(
-    userId: string,
-    page: string,
-    limit: string,
-    keyword: string,
-  ) {
-    const _keyword = keyword || '';
-    const _page = page ? parseInt(page) : 1;
-    const _limit = limit ? parseInt(limit) : 10;
+  async findAllUpdatedBookings(findBookingDto: FindBookingDto) {
+    try {
+      const conditions = { pnr: Not('') };
+      const _page = findBookingDto.page || 1;
+      const _limit = findBookingDto.limit || 10;
+      if (findBookingDto.bookingRef) {
+        conditions['bookingRef'] = Like(`%${findBookingDto.bookingRef}%`);
+      }
+      if (findBookingDto.pnr) {
+        conditions['pnr'] = Like(`%${findBookingDto.pnr}%`);
+      }
+      if (findBookingDto.fromDate && findBookingDto.toDate) {
+        conditions['creationDate'] = Between(
+          findBookingDto.fromDate,
+          findBookingDto.toDate,
+        );
+      } else if (findBookingDto.fromDate) {
+        const fd = new Date(findBookingDto.fromDate);
+        conditions['creationDate'] = Between(
+          new Date(fd.getTime() - 24 * 60 * 60 * 1000).toJSON(),
+          new Date(fd.getTime()).toJSON(),
+        );
+      } else if (findBookingDto.toDate) {
+        const fd = new Date(findBookingDto.toDate);
+        conditions['creationDate'] = Between(
+          new Date(fd.getTime() - 24 * 60 * 60 * 1000).toJSON(),
+          new Date(fd.getTime()).toJSON(),
+        );
+      }
+      if (findBookingDto.travelDate) {
+        const fd = new Date(findBookingDto.travelDate);
+
+        const ts = await Ticket.find({
+          where: {
+            departureDateTime: Between(
+              new Date(fd.getTime() - 24 * 60 * 60 * 1000).toJSON(),
+              new Date(fd.getTime() + 24 * 60 * 60 * 1000).toJSON(),
+            ),
+          },
+        });
+
+        conditions['ticket'] = In(ts.map((el) => el.id));
+      }
+      const results = await paginate(
+        Booking.getRepository(),
+        { page: _page, limit: _limit },
+        {
+          join: {
+            alias: 'booking',
+            leftJoinAndSelect: {
+              ticket: 'booking.ticket',
+            },
+          },
+          where: {
+            ...conditions,
+            ticket: Not(IsNull()),
+          },
+          relations: ['passengers', 'ticket'],
+        },
+      );
+      return {
+        status: true,
+        message: 'Booking fetched successfully',
+        data: results,
+      };
+    } catch (err) {
+      return {
+        status: false,
+        message: 'No Bookings found',
+        data: [],
+      };
+    }
 
     // const results = await Booking.createQueryBuilder('booking')
     //   .leftJoinAndSelect('booking.ticket', 'ticket')
     //   .andWhere('ticket.user.id = :userId', { userId })
     //   .execute();
-
-    const results = await paginate(
-      Booking.getRepository(),
-      { page: _page, limit: _limit },
-      {
-        // join: {
-        //   alias: 'booking',
-        //   leftJoinAndSelect: {
-        //     ticket: 'booking.ticket',
-        //   },
-        // },
-        where: { pnr: Not(''), ticket: Not(IsNull()) },
-        relations: ['user', 'passengers', 'ticket'],
-      },
-    );
-
-    const data = results.items.map((item) => {
-      if (item.user) delete item.user.password;
-      return item;
-    });
-
-    return {
-      status: true,
-      message: 'Booking fetched successfully',
-      data: {
-        items: data,
-        meta: results.meta,
-      },
-    };
   }
 }

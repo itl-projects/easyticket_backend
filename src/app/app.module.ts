@@ -20,6 +20,8 @@ import { BookingsModule } from 'src/bookings/bookings.module';
 import { SettingsModule } from 'src/settings/settings.module';
 import { Credit } from 'src/credits/entities/credit.entity';
 import { CreditsModule } from 'src/credits/credits.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 const entities = [
   User,
@@ -58,6 +60,9 @@ const entities = [
     BookingsModule,
     SettingsModule,
     CreditsModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'upload'),
+    }),
   ],
   controllers: [],
   providers: [],

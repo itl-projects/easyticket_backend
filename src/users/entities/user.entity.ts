@@ -55,6 +55,14 @@ export class User extends PreEntity {
   @Column({ default: Roles.USER })
   role: number;
 
+  @ApiProperty()
+  @Column({ default: true })
+  ticketLogoEnabled: boolean;
+
+  @ApiProperty()
+  @Column({ default: false })
+  ticketAmountEnabled: boolean;
+
   @OneToOne(() => UserProfile)
   @JoinColumn()
   profile: UserProfile;
@@ -71,5 +79,9 @@ export class User extends PreEntity {
 
   async validatePassword(password: string): Promise<boolean> {
     return await bcrypt.compare(password, this.password);
+  }
+
+  async hashNewPassword(password: string) {
+    return await bcrypt.hash(password, 8);
   }
 }

@@ -1,4 +1,4 @@
-import { ConsoleLogger, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { MarkUp } from 'src/settings/entities/markup.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Between, Equal, MoreThanOrEqual } from 'typeorm';
@@ -148,6 +148,28 @@ export class FlightsService {
         status: false,
         message: 'No Deal found',
         data: null,
+      };
+    }
+  }
+
+  async getAvailableTicketDates(source: number, destination: number) {
+    try {
+      const dates = await Ticket.find({
+        select: ['departureDateTime'],
+        where: {
+          source: source,
+          destination: destination,
+        },
+        order: { departureDateTime: 'ASC' },
+      });
+      return {
+        success: true,
+        data: dates,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: 'Failed to find dates ',
       };
     }
   }

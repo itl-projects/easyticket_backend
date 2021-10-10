@@ -8,8 +8,16 @@ import {
   Delete,
   UseGuards,
   Query,
+  UseInterceptors,
+  UploadedFile,
+  Req,
+  Res,
 } from '@nestjs/common';
-import { UsersMarkupService, UsersService } from './users.service';
+import {
+  AgentProfileService,
+  UsersMarkupService,
+  UsersService,
+} from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -19,6 +27,10 @@ import { Roles } from 'src/constants/Roles';
 import { RolesAllowed } from 'src/auth/decorators/roles.decorator';
 import { UpdateAccountStatusDto } from './dto/update-account-status-dto';
 import { UserMarkupsDto } from './dto/user-markup.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ChangePasswordDto } from './dto/change-password.dto.';
+import { profileImageStorage } from 'src/commons/multerOptions';
+import { UpdateProfileInfoDto } from './dto/profile-info-update.dto';
 
 @ApiTags('Users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -89,7 +101,7 @@ export class UsersController {
   }
 }
 
-@ApiTags('Users')
+@ApiTags('User Markups')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @RolesAllowed(Roles.ADMIN)
 @Controller('users/markup')
@@ -122,5 +134,52 @@ export class UserMarkupController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersMarkupService.remove(id);
+  }
+}
+
+// Agent profile controller
+@ApiTags('Agent Profile')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@RolesAllowed(Roles.USER)
+@Controller('agent-profile')
+export class AgentController {
+  constructor(private readonly agentProfileService: AgentProfileService) {}
+
+  @Get('toggle-ticket-logo')
+  toggleTicketLogo(@Req() request) {
+    return this.agentProfileService.toggleTicketLogo(request.user.userId);
+  }
+
+  @Post('upload-profile-image')
+  @UseInterceptors(FileInterceptor('file', { storage: profileImageStorage }))
+  uploadFile(@UploadedFile() file: Express.Multer.File, @Req() request) {
+    return this.agentProfileService.changeProfileImage(
+      request.user.userId,
+      file.path,
+    );
+  }
+
+  @Get('avatars/:fileId')
+  async serveAvatar(@Param('fileId') fileId, @Res() res): Promise<any> {
+    res.sendFile(fileId, { root: 'avatars' });
+  }
+
+  @Post('change-password')
+  changePassword(@Req() request, @Body() changePasswordDto: ChangePasswordDto) {
+    return this.agentProfileService.changePassword(
+      request.user.userId,
+      changePasswordDto,
+    );
+  }
+
+  @Post('update-profile-info')
+  updateProfileInfo(
+    @Req() request,
+    @Body() updateProfileInfoDto: UpdateProfileInfoDto,
+  ) {
+    return this.agentProfileService.updateProfileInfo(
+      request.user.userId,
+      updateProfileInfoDto,
+    );
   }
 }

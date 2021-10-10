@@ -4,6 +4,9 @@ import { PreEntity } from '../../core/base.entity';
 
 @Entity()
 export class UserProfile extends PreEntity {
+  @Column({ nullable: true })
+  profile_image: string;
+
   @Column()
   city: string;
 
@@ -15,4 +18,7 @@ export class UserProfile extends PreEntity {
 
   @Column({ nullable: true })
   pan: string;
+
+  @Column({ nullable: true })
+  address: string;
 }

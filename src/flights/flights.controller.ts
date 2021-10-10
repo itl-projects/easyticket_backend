@@ -41,4 +41,12 @@ export class FlightsController {
   findFlightNumbersByAirline(@Param('id') id: string) {
     return this.flightsService.findByAirline(id);
   }
+
+  @Get('get-ticket-dates/:source/:destination')
+  getAvailableTicketDates(
+    @Param('source') source: string,
+    @Param('destination') destination: string,
+  ) {
+    return this.flightsService.getAvailableTicketDates(+source, +destination);
+  }
 }
