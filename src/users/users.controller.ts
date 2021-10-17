@@ -31,6 +31,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ChangePasswordDto } from './dto/change-password.dto.';
 import { profileImageStorage } from 'src/commons/multerOptions';
 import { UpdateProfileInfoDto } from './dto/profile-info-update.dto';
+import { UserFilter } from './dto/user-filter.dto';
 
 @ApiTags('Users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -47,6 +48,16 @@ export class UsersController {
   @Get('get-active-users')
   getActiveUsers() {
     return this.usersService.getActiveUsers();
+  }
+
+  @Get('get-cities')
+  getCities() {
+    return this.usersService.getAllCities();
+  }
+
+  @Get('get-states')
+  getStates() {
+    return this.usersService.getAllStates();
   }
 
   @Get(':id')
@@ -68,13 +79,9 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
-  findAll(
-    @Query('page') page: string,
-    @Query('limit') limit: string,
-    @Query('keyword') keyword: string,
-  ) {
-    return this.usersService.findAll(page, limit, keyword);
+  @Post('list-users')
+  findAll(@Body() userFilter: UserFilter) {
+    return this.usersService.filterUser(userFilter);
   }
 
   @Patch('changeAccountStatus/:id')

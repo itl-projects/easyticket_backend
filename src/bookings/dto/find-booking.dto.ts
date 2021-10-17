@@ -1,5 +1,6 @@
 export class FindBookingDto {
   bookingRef: string;
+  airline: number;
   fromDate: string;
   toDate: string;
   travelDate: string;

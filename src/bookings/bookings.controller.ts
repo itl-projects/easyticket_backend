@@ -70,6 +70,11 @@ export class BookingsController {
     );
   }
 
+  @Get('get-booking-counts')
+  getPendingAndUpdatedBookings() {
+    return this.bookingsService.getPendingAndUpdatedBookings();
+  }
+
   @Post('updated')
   findAllUpdatedBookings(@Body() findBookingDto: FindBookingDto) {
     return this.bookingsService.findAllUpdatedBookings(findBookingDto);

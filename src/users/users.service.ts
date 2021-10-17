@@ -12,6 +12,7 @@ import { UserMarkup } from './entities/markup.entity';
 import { UserMarkupsDto } from './dto/user-markup.dto';
 import { ChangePasswordDto } from './dto/change-password.dto.';
 import { UpdateProfileInfoDto } from './dto/profile-info-update.dto';
+import { UserFilter } from './dto/user-filter.dto';
 
 @Injectable()
 export class UsersService {
@@ -77,6 +78,67 @@ export class UsersService {
           firstName: Like('%' + _keyword + '%'),
           role: Not(Roles.ADMIN),
         },
+        relations: ['profile', 'markup'],
+      },
+    );
+  }
+
+  async filterUser(userFilter: UserFilter) {
+    const _page = userFilter.page ? userFilter.page : 1;
+    const _limit = userFilter.limit ? userFilter.limit : 10;
+    const conditions = { role: Not(Roles.ADMIN) };
+    let profiles = [];
+    if (userFilter.city && userFilter.city !== 'all') {
+      const profilesIds = await UserProfile.find({
+        select: ['id'],
+        where: { city: Like(`%${userFilter.city}%`) },
+      });
+      profiles = profilesIds.map((el) => el.id);
+      conditions['profile'] = In(profiles);
+    }
+    if (userFilter.state && userFilter.state !== 'all') {
+      const profilesIds = await UserProfile.find({
+        select: ['id'],
+        where: { state: Like(`%${userFilter.state}%`) },
+      });
+      if (profiles.length > 0) {
+        conditions['profile'] = In([
+          ...profiles,
+          ...profilesIds.map((el) => el.id),
+        ]);
+      } else conditions['profile'] = In(profilesIds.map((el) => el.id));
+    }
+    if (userFilter.phone) {
+      conditions['phone'] = Like(`%${userFilter.phone}%`);
+    }
+    if (userFilter.status !== -1) {
+      conditions['isActive'] = userFilter.status ? true : false;
+    }
+    if (userFilter.userRef) {
+      conditions['username'] = Like(`%${userFilter.userRef}%`);
+    }
+    if (userFilter.userType) {
+      conditions['role'] =
+        userFilter.userType === 1 ? In([Roles.USER]) : In([Roles.SUPPLIER]);
+    }
+    return paginate(
+      User.getRepository(),
+      { page: _page, limit: _limit },
+      {
+        select: [
+          'email',
+          'phone',
+          'commision',
+          'firstName',
+          'lastName',
+          'id',
+          'profile',
+          'role',
+          'username',
+          'isActive',
+          'creationDate',
+        ],
+        where: conditions,
         relations: ['profile', 'markup'],
       },
     );
@@ -198,6 +260,40 @@ export class UsersService {
       return {
         success: false,
         message: 'Sorry! failed to find markups',
+      };
+    }
+  }
+
+  async getAllCities() {
+    try {
+      const cities = await UserProfile.createQueryBuilder()
+        .select(['DISTINCT (UserProfile.city) as city'])
+        .getRawMany();
+      return {
+        success: true,
+        data: cities,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        data: [],
+      };
+    }
+  }
+
+  async getAllStates() {
+    try {
+      const cities = await UserProfile.createQueryBuilder()
+        .select(['DISTINCT (UserProfile.state) as state'])
+        .getRawMany();
+      return {
+        success: true,
+        data: cities,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        data: [],
       };
     }
   }

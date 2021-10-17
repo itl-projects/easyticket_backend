@@ -18,6 +18,7 @@ import { RolesAllowed } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/constants/Roles';
+import { FilterTicket } from './dto/filter-ticket.dto';
 
 @ApiTags('Tickets')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -36,19 +37,9 @@ export class TicketsController {
     return this.ticketsService.createBulk(createTicketDto, request.user.userId);
   }
 
-  @Get()
-  findAll(
-    @Req() request,
-    @Query('page') page: string,
-    @Query('limit') limit: string,
-    @Query('keyword') keyword: string,
-  ) {
-    return this.ticketsService.findAll(
-      request.user.userId,
-      page,
-      limit,
-      keyword,
-    );
+  @Post('list-tickets')
+  findAll(@Req() request, @Body() filterTicket: FilterTicket) {
+    return this.ticketsService.filterTickets(request.user.userId, filterTicket);
   }
 
   @Get(':id')

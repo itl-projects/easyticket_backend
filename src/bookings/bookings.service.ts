@@ -342,6 +342,7 @@ export class BookingsService {
           new Date(fd.getTime()).toJSON(),
         );
       }
+      let ticketIds = [];
       if (findBookingDto.travelDate) {
         const fd = new Date(findBookingDto.travelDate);
 
@@ -353,8 +354,16 @@ export class BookingsService {
             ),
           },
         });
-
-        conditions['ticket'] = In(ts.map((el) => el.id));
+        ticketIds = ts.map((el) => el.id);
+        conditions['ticket'] = In(ticketIds);
+      }
+      if (findBookingDto.airline) {
+        const ts = await Ticket.find({
+          where: { airline: findBookingDto.airline },
+        });
+        if (ticketIds.length > 0) {
+          conditions['ticket'] = In([...ticketIds, ...ts.map((el) => el.id)]);
+        } else conditions['ticket'] = In(ts.map((el) => el.id));
       }
       const results = await paginate(
         Booking.getRepository(),
@@ -368,19 +377,19 @@ export class BookingsService {
           },
           where: {
             ...conditions,
-            ticket: Not(IsNull()),
+            ticket: conditions['ticket'] ? conditions['ticket'] : Not(IsNull()),
           },
-          relations: ['passengers', 'ticket'],
+          relations: ['passengers', 'ticket', 'user'],
         },
       );
       return {
-        status: true,
+        success: true,
         message: 'Booking fetched successfully',
         data: results,
       };
     } catch (err) {
       return {
-        status: false,
+        success: false,
         message: 'No Bookings found',
         data: [],
       };
@@ -390,5 +399,24 @@ export class BookingsService {
     //   .leftJoinAndSelect('booking.ticket', 'ticket')
     //   .andWhere('ticket.user.id = :userId', { userId })
     //   .execute();
+  }
+
+  async getPendingAndUpdatedBookings() {
+    try {
+      const total = await Booking.find({});
+      const pending = await Booking.find({ where: { pnr: '' } });
+      return {
+        success: true,
+        data: {
+          booked: total.length - pending.length,
+          total: total.length,
+        },
+      };
+    } catch (err) {
+      return {
+        success: false,
+        data: null,
+      };
+    }
   }
 }

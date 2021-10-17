@@ -1,7 +1,10 @@
 export class FindCreditDto {
-  agent: string;
-  fromDate: string;
-  toDate: string;
+  creditRef: string;
+  agentRef: string;
+  company: string;
+  requestDate: string;
+  transferDate: string;
+  status: string;
   page: number;
   limit: number;
 }

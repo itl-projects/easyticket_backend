@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { paginate } from 'nestjs-typeorm-paginate';
+import { UserProfile } from 'src/users/entities/profile.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Like } from 'typeorm';
+import { Between, In, Like } from 'typeorm';
 import { AddFundCreditDto } from './dto/add-fund.dto';
 import { CreateCreditDto } from './dto/create-credit.dto';
 import { FindCreditDto } from './dto/find-credit.dto';
-import { UpdateCreditDto } from './dto/update-credit.dto';
 import { Credit } from './entities/credit.entity';
 
 @Injectable()
@@ -87,6 +87,44 @@ export class CreditsAdminService {
   async findAll(userId: string, findCreditDto: FindCreditDto) {
     const _page = findCreditDto.page ? findCreditDto.page : 1;
     const _limit = findCreditDto.limit ? findCreditDto.limit : 10;
+    const conditions = {};
+    if (findCreditDto.creditRef) {
+      conditions['creditRef'] = Like(`%${findCreditDto.creditRef}%`);
+    }
+    if (findCreditDto.agentRef) {
+      const agents = await User.find({
+        select: ['id'],
+        where: { username: Like(`%${findCreditDto.agentRef}%`) },
+      });
+      conditions['agent'] = In(agents.map((el) => el.id));
+    }
+    if (findCreditDto.company) {
+      const profiles = await UserProfile.find({
+        select: ['id'],
+        where: { company: Like(`%${findCreditDto.company}%`) },
+      });
+      const agents = await User.find({
+        select: ['id'],
+        where: { profile: In(profiles.map((el) => el.id)) },
+      });
+      conditions['agent'] = In(agents.map((el) => el.id));
+    }
+    if (findCreditDto.requestDate) {
+      conditions['requestDate'] = Between(
+        new Date(`${findCreditDto.requestDate.split('T')[0]} 00:00`),
+        new Date(`${findCreditDto.requestDate.split('T')[0]} 23:59`),
+      );
+    }
+    if (findCreditDto.status && findCreditDto.status !== 'all') {
+      conditions['status'] = findCreditDto.status;
+    }
+    if (findCreditDto.transferDate) {
+      conditions['transferDate'] = Between(
+        new Date(`${findCreditDto.transferDate.split('T')[0]} 00:00`),
+        new Date(`${findCreditDto.transferDate.split('T')[0]} 23:59`),
+      );
+    }
+
     const results = await paginate(
       Credit.getRepository(),
       {
@@ -94,6 +132,7 @@ export class CreditsAdminService {
         limit: _limit,
       },
       {
+        where: conditions,
         relations: ['agent', 'agent.profile'],
       },
     );
@@ -107,10 +146,6 @@ export class CreditsAdminService {
 
   findOne(id: string) {
     return `This action returns a #${id} credit`;
-  }
-
-  update(id: string, updateCreditDto: UpdateCreditDto) {
-    return `This action updates a #${id} credit`;
   }
 
   async approveCreditRequest(id: string) {

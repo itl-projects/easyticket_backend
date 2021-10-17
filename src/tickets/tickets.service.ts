@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { User } from 'src/users/entities/user.entity';
-import { Equal } from 'typeorm';
+import { Between, Equal, In } from 'typeorm';
 import { CreateTicketDto } from './dto/create-ticket.dto';
+import { FilterTicket } from './dto/filter-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket } from './entities/ticket.entity';
 
@@ -146,6 +147,89 @@ export class TicketsService {
     });
     return {
       status: true,
+      message: 'Tickets fetched successfully',
+      data: data,
+      meta: results.meta,
+    };
+  }
+
+  async filterTickets(userId: string, filterTicket: FilterTicket) {
+    const _page = filterTicket.page ? filterTicket.page : 1;
+    const _limit = filterTicket.limit ? filterTicket.limit : 10;
+    const conditions = { user: Equal(userId) };
+    if (filterTicket.airline) {
+      conditions['airline'] = filterTicket.airline;
+    }
+    if (filterTicket.from && filterTicket.to) {
+      conditions['creationDate'] = Between(
+        new Date(`${filterTicket.from.split('T')[0]} 00:00`),
+        new Date(`${filterTicket.to.split('T')[0]} 23:59`),
+      );
+    } else if (filterTicket.from) {
+      conditions['creationDate'] = Between(
+        new Date(`${filterTicket.from.split('T')[0]} 00:00`),
+        new Date(`${new Date().toISOString().split('T')[0]} 23:59`),
+      );
+    } else if (filterTicket.to) {
+      conditions['creationDate'] = Between(
+        new Date(`${new Date().toISOString().split('T')[0]} 00:00`),
+        new Date(`${filterTicket.to.split('T')[0]} 23:59`),
+      );
+    }
+    if (filterTicket.departureDate) {
+      conditions['departureDateTime'] = Between(
+        new Date(`${filterTicket.departureDate.split('T')[0]} 00:00`),
+        new Date(`${filterTicket.departureDate.split('T')[0]} 23:59`),
+      );
+    }
+    if (filterTicket.arrivalDate) {
+      conditions['arrivalDateTime'] = Between(
+        new Date(`${filterTicket.arrivalDate.split('T')[0]} 00:00`),
+        new Date(`${filterTicket.arrivalDate.split('T')[0]} 23:59`),
+      );
+    }
+
+    if (filterTicket.uploadedBy) {
+      const users = User.find({
+        select: ['id'],
+        where: { role: filterTicket.uploadedBy },
+      });
+      conditions['user'] = In((await users).map((el) => el.id));
+    }
+
+    const results = await paginate(
+      Ticket.getRepository(),
+      { page: _page, limit: _limit },
+      {
+        select: [
+          'id',
+          'airline',
+          'arrivalDateTime',
+          'departureDateTime',
+          'source',
+          'destination',
+          'flightNumber',
+          'isHotDeal',
+          'isRefundable',
+          'price',
+          'quantity',
+          'user',
+          'creationDate',
+          'note',
+        ],
+        where: conditions,
+        order: {
+          departureDateTime: 'ASC',
+        },
+        relations: ['user'],
+      },
+    );
+    const data = results.items.map((item) => {
+      if (item.user) delete item.user.password;
+      return item;
+    });
+    return {
+      success: true,
       message: 'Tickets fetched successfully',
       data: data,
       meta: results.meta,
