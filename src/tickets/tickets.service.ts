@@ -160,33 +160,24 @@ export class TicketsService {
     if (filterTicket.airline) {
       conditions['airline'] = filterTicket.airline;
     }
-    if (filterTicket.from && filterTicket.to) {
-      conditions['creationDate'] = Between(
-        new Date(`${filterTicket.from.split('T')[0]} 00:00`),
-        new Date(`${filterTicket.to.split('T')[0]} 23:59`),
-      );
-    } else if (filterTicket.from) {
-      conditions['creationDate'] = Between(
-        new Date(`${filterTicket.from.split('T')[0]} 00:00`),
-        new Date(`${new Date().toISOString().split('T')[0]} 23:59`),
-      );
-    } else if (filterTicket.to) {
-      conditions['creationDate'] = Between(
-        new Date(`${new Date().toISOString().split('T')[0]} 00:00`),
-        new Date(`${filterTicket.to.split('T')[0]} 23:59`),
-      );
-    }
     if (filterTicket.departureDate) {
       conditions['departureDateTime'] = Between(
         new Date(`${filterTicket.departureDate.split('T')[0]} 00:00`),
-        new Date(`${filterTicket.departureDate.split('T')[0]} 23:59`),
+        new Date(`${new Date().toISOString().split('T')[0]} 23:59`),
       );
     }
     if (filterTicket.arrivalDate) {
       conditions['arrivalDateTime'] = Between(
-        new Date(`${filterTicket.arrivalDate.split('T')[0]} 00:00`),
+        new Date(`${new Date().toISOString().split('T')[0]} 00:00`),
         new Date(`${filterTicket.arrivalDate.split('T')[0]} 23:59`),
       );
+    }
+
+    if (filterTicket.source) {
+      conditions['source'] = filterTicket.source;
+    }
+    if (filterTicket.destination) {
+      conditions['destination'] = filterTicket.destination;
     }
 
     if (filterTicket.uploadedBy) {
