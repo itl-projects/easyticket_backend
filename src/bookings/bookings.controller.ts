@@ -76,8 +76,14 @@ export class BookingsController {
   }
 
   @Post('updated')
-  findAllUpdatedBookings(@Body() findBookingDto: FindBookingDto) {
-    return this.bookingsService.findAllUpdatedBookings(findBookingDto);
+  findAllUpdatedBookings(
+    @Req() request,
+    @Body() findBookingDto: FindBookingDto,
+  ) {
+    return this.bookingsService.findAllUpdatedBookings(
+      request.user.userId,
+      findBookingDto,
+    );
   }
 
   @Get(':id')

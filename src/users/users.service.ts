@@ -393,7 +393,7 @@ export class UsersMarkupService {
 }
 
 @Injectable()
-export class AgentProfileService {
+export class ProfileService {
   async toggleTicketLogo(userId: string) {
     try {
       const user = await User.findOneOrFail(userId);

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { paginate } from 'nestjs-typeorm-paginate';
+import { Roles } from 'src/constants/Roles';
 import { MarkUp } from 'src/settings/entities/markup.entity';
 import { Ticket } from 'src/tickets/entities/ticket.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -14,7 +15,9 @@ import { Passenger } from './entities/passenger.entity';
 @Injectable()
 export class BookingsService {
   async create(createBookingDto: CreateBookingDto, userId: string) {
-    const ticketRes = await Ticket.findOne(createBookingDto.ticket);
+    const ticketRes = await Ticket.findOne(createBookingDto.ticket, {
+      loadRelationIds: true,
+    });
     let booking = null;
     let passengers = null;
     try {
@@ -59,6 +62,7 @@ export class BookingsService {
         amount,
         passengerCount: createBookingDto.quantity,
         user: user,
+        pnr: ticketRes.pnr,
       });
 
       await booking.save();
@@ -87,6 +91,11 @@ export class BookingsService {
         const data = await Booking.findOne(booking.id, {
           relations: ['passengers', 'ticket'],
         });
+        const ticketOwner = await User.findOneOrFail(ticketRes.user);
+        if (ticketOwner.role === Roles.SUPPLIER) {
+          ticketOwner.commision += amount;
+          await ticketOwner.save();
+        }
 
         return {
           status: true,
@@ -313,7 +322,7 @@ export class BookingsService {
     };
   }
 
-  async findAllUpdatedBookings(findBookingDto: FindBookingDto) {
+  async findAllUpdatedBookings(userId: string, findBookingDto: FindBookingDto) {
     try {
       const conditions = { pnr: Not('') };
       const _page = findBookingDto.page || 1;
@@ -365,6 +374,16 @@ export class BookingsService {
           conditions['ticket'] = In([...ticketIds, ...ts.map((el) => el.id)]);
         } else conditions['ticket'] = In(ts.map((el) => el.id));
       }
+      const ts = await Ticket.find({
+        where: { user: userId },
+      });
+      if (ticketIds.length > 0) {
+        conditions['ticket'] = In(
+          ts.filter((el) => ticketIds.includes(el)).map((el) => el.id),
+        );
+      } else {
+        conditions['ticket'] = In(ts.map((el) => el.id));
+      }
       const results = await paginate(
         Booking.getRepository(),
         { page: _page, limit: _limit },
@@ -378,6 +397,9 @@ export class BookingsService {
           where: {
             ...conditions,
             ticket: conditions['ticket'] ? conditions['ticket'] : Not(IsNull()),
+          },
+          order: {
+            creationDate: 'DESC',
           },
           relations: ['passengers', 'ticket', 'user'],
         },

@@ -45,6 +45,10 @@ export class Ticket extends PreEntity {
   quantity: number;
 
   @ApiProperty()
+  @Column({ default: '' })
+  pnr: string;
+
+  @ApiProperty()
   @Column({ default: false, type: 'boolean' })
   isRefundable: boolean;
 

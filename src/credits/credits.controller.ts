@@ -19,11 +19,11 @@ import { CreditsAdminService, CreditsService } from './credits.service';
 import { AddFundCreditDto } from './dto/add-fund.dto';
 import { CreateCreditDto } from './dto/create-credit.dto';
 import { FindCreditDto } from './dto/find-credit.dto';
-import { UpdateCreditDto } from './dto/update-credit.dto';
+// import { UpdateCreditDto } from './dto/update-credit.dto';
 
 @ApiTags('Credits')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RolesAllowed(Roles.USER)
+@RolesAllowed(Roles.USER, Roles.SUPPLIER)
 @Controller('credits')
 export class CreditsController {
   constructor(private readonly creditsService: CreditsService) {}
@@ -33,7 +33,7 @@ export class CreditsController {
     return this.creditsService.create(request.user.userId, createCreditDto);
   }
 
-  @Post('agent-credits')
+  @Post('get-credits')
   findAll(@Req() request, @Body() findCreditDto: FindCreditDto) {
     return this.creditsService.findAll(request.user.userId, findCreditDto);
   }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { paginate } from 'nestjs-typeorm-paginate';
+import { Roles } from 'src/constants/Roles';
 import { UserProfile } from 'src/users/entities/profile.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Between, In, Like } from 'typeorm';
@@ -33,23 +34,33 @@ export class CreditsService {
   }
 
   async findAll(userId: string, findCreditDto: FindCreditDto) {
-    const _page = findCreditDto.page ? findCreditDto.page : 1;
-    const _limit = findCreditDto.limit ? findCreditDto.limit : 10;
-    const results = await paginate(
-      Credit.getRepository(),
-      { page: _page, limit: _limit },
-      {
-        where: {
-          agent: { id: Like(userId) },
+    try {
+      const _page = findCreditDto.page ? findCreditDto.page : 1;
+      const _limit = findCreditDto.limit ? findCreditDto.limit : 10;
+      const results = await paginate(
+        Credit.getRepository(),
+        { page: _page, limit: _limit },
+        {
+          where: {
+            agent: { id: Like(userId) },
+          },
+          order: {
+            creationDate: 'DESC',
+          },
         },
-      },
-    );
-    return {
-      success: true,
-      message: 'Credit fetched successfully',
-      data: results.items,
-      meta: results.meta,
-    };
+      );
+      return {
+        success: true,
+        message: 'Credit fetched successfully',
+        data: results.items,
+        meta: results.meta,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: 'Failed to fetch Credits',
+      };
+    }
   }
 
   remove(id: number) {
@@ -133,6 +144,9 @@ export class CreditsAdminService {
       },
       {
         where: conditions,
+        order: {
+          creationDate: 'DESC',
+        },
         relations: ['agent', 'agent.profile'],
       },
     );
@@ -160,7 +174,16 @@ export class CreditsAdminService {
         };
       }
       const user = await User.findOneOrFail(currCredit.agent.id);
-      user.commision += currCredit.amount;
+      if (user.role === Roles.USER) user.commision += currCredit.amount;
+      else if (user.role === Roles.SUPPLIER) {
+        if (user.commision < currCredit.amount) {
+          return {
+            success: false,
+            message: 'Insufficiant account balance.',
+          };
+        }
+        user.commision -= currCredit.amount;
+      }
       await user.save();
       currCredit.status = 'approved';
       currCredit.transferDate = new Date();

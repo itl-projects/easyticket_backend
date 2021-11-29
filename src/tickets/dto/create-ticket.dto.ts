@@ -50,4 +50,7 @@ export class CreateTicketDto {
 
   @IsOptional()
   note: string;
+
+  @IsOptional()
+  pnr: string;
 }

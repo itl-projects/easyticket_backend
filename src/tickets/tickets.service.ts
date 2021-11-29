@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { User } from 'src/users/entities/user.entity';
-import { Between, Equal, In } from 'typeorm';
+import { Between, Equal, In, MoreThanOrEqual } from 'typeorm';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { FilterTicket } from './dto/filter-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
@@ -45,7 +45,6 @@ export class TicketsService {
           data: null,
         };
     } catch (err) {
-      console.log(err);
       return {
         status: false,
         message: 'Internal server error',
@@ -164,6 +163,10 @@ export class TicketsService {
       conditions['departureDateTime'] = Between(
         new Date(`${filterTicket.departureDate.split('T')[0]} 00:00`),
         new Date(`${new Date().toISOString().split('T')[0]} 23:59`),
+      );
+    } else {
+      conditions['arrivalDateTime'] = MoreThanOrEqual(
+        new Date(`${new Date().toISOString().split('T')[0]} 00:00`),
       );
     }
     if (filterTicket.arrivalDate) {

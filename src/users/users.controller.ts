@@ -7,14 +7,13 @@ import {
   Param,
   Delete,
   UseGuards,
-  Query,
   UseInterceptors,
   UploadedFile,
   Req,
   Res,
 } from '@nestjs/common';
 import {
-  AgentProfileService,
+  ProfileService,
   UsersMarkupService,
   UsersService,
 } from './users.service';
@@ -145,12 +144,12 @@ export class UserMarkupController {
 }
 
 // Agent profile controller
-@ApiTags('Agent Profile')
+@ApiTags('Profile')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RolesAllowed(Roles.USER)
-@Controller('agent-profile')
+@RolesAllowed(Roles.USER, Roles.SUPPLIER)
+@Controller('profile')
 export class AgentController {
-  constructor(private readonly agentProfileService: AgentProfileService) {}
+  constructor(private readonly agentProfileService: ProfileService) {}
 
   @Get('toggle-ticket-logo')
   toggleTicketLogo(@Req() request) {

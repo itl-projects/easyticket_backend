@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import {
-  AgentProfileService,
+  ProfileService,
   UsersMarkupService,
   UsersService,
 } from './users.service';
@@ -12,6 +12,6 @@ import {
 
 @Module({
   controllers: [UsersController, UserMarkupController, AgentController],
-  providers: [UsersService, UsersMarkupService, AgentProfileService],
+  providers: [UsersService, UsersMarkupService, ProfileService],
 })
 export class UsersModule {}
